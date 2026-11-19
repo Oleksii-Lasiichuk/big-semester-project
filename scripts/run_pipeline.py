@@ -7,7 +7,9 @@ import sys
 import time
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+# repo root: --root on Databricks (serverless runs the script without __file__), else this file's parent
+_root = sys.argv[sys.argv.index("--root") + 1] if "--root" in sys.argv else str(Path(__file__).resolve().parents[1])
+sys.path.insert(0, str(Path(_root) / "src"))
 from pipeline import bronze, silver, validation  # noqa: E402
 from pipeline.io import get_spark, read, write  # noqa: E402
 
@@ -17,9 +19,13 @@ STEPS = ["reference", "alerts", "telegram", "af", "weather", "validate"]
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--only", default=",".join(STEPS))
+    ap.add_argument("--root")
     steps = ap.parse_args().only.split(",")
     spark = get_spark()
-    spark.sparkContext.setLogLevel("ERROR")
+    try:
+        spark.sparkContext.setLogLevel("ERROR")
+    except Exception:  # not available on serverless compute
+        pass
     t0 = time.time()
     quarantine = []
 

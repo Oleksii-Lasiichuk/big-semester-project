@@ -1,0 +1,12 @@
+bundle:
+  name: airwar
+
+include:
+  - resources/*.yml
+
+targets:
+  dev:
+    mode: development
+    default: true
+    workspace:
+      profile: OWN

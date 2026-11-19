@@ -6,7 +6,7 @@ from .io import RAW_DIR
 
 
 def _meta(df):
-    return df.withColumn("_ingested_at", F.current_timestamp()).withColumn("_source_file", F.input_file_name())
+    return df.withColumn("_ingested_at", F.current_timestamp()).withColumn("_source_file", F.col("_metadata.file_path"))
 
 
 def alerts(spark):

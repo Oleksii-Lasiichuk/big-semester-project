@@ -7,7 +7,8 @@ ON_DATABRICKS = "DATABRICKS_RUNTIME_VERSION" in os.environ
 CATALOG = os.environ.get("PIPELINE_CATALOG", "workspace")
 SCHEMA_PREFIX = "airwar"  # schemas: airwar_bronze, airwar_silver, airwar_gold
 LOCAL_LAKE = ROOT / "data" / "lake"
-RAW_DIR = os.environ.get("PIPELINE_RAW_DIR", str(ROOT / "data"))
+RAW_DIR = os.environ.get("PIPELINE_RAW_DIR",
+                         f"/Volumes/{CATALOG}/{SCHEMA_PREFIX}_bronze/raw" if ON_DATABRICKS else str(ROOT / "data"))
 
 
 def get_spark():
