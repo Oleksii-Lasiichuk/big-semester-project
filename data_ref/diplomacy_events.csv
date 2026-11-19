@@ -1,0 +1,43 @@
+date,event,type,actors,verified
+2022-02-24,Full-scale invasion begins,military_milestone,Russia,no
+2022-02-28,First Ukraine-Russia talks in Belarus,talks,Ukraine;Russia,no
+2022-03-29,Istanbul talks,talks,Ukraine;Russia;Turkey,no
+2022-09-21,Russia announces partial mobilisation,military_milestone,Putin,no
+2022-09-30,Russia declares annexation of four oblasts,political,Putin,no
+2022-10-08,Crimean bridge explosion,military_milestone,Ukraine,no
+2022-11-11,Kherson liberated,military_milestone,Ukraine,no
+2022-12-21,Zelensky visits Washington,visit,Zelensky;Biden,no
+2023-02-20,Biden visits Kyiv,visit,Biden;Zelensky,no
+2023-06-06,Kakhovka dam destroyed,military_milestone,Russia,no
+2023-06-24,Wagner mutiny,political,Prigozhin,no
+2023-07-11,NATO summit in Vilnius,summit,NATO,no
+2023-07-17,Russia leaves the Black Sea Grain Initiative,political,Russia,no
+2024-03-17,Russian presidential election,election,Putin,no
+2024-06-15,Peace summit in Switzerland,summit,Ukraine;EU;US,no
+2024-07-09,NATO summit in Washington,summit,NATO,no
+2024-08-06,Ukrainian incursion into Kursk oblast,military_milestone,Ukraine,no
+2024-11-05,US presidential election,election,Trump,no
+2024-11-19,First ATACMS strike on Russian territory reported,military_milestone,Ukraine;US,no
+2024-11-21,Oreshnik missile strike on Dnipro,military_milestone,Russia,no
+2025-01-20,Trump inauguration,political,Trump,no
+2025-02-12,Trump-Putin phone call,call,Trump;Putin,no
+2025-02-18,US-Russia talks in Riyadh,talks,US;Russia,no
+2025-02-28,Trump-Zelensky meeting in the Oval Office,visit,Trump;Zelensky,no
+2025-03-03,US pauses military aid to Ukraine,aid,US,no
+2025-03-11,US-Ukraine talks in Jeddah; aid resumed,talks,US;Ukraine,no
+2025-03-18,Trump-Putin phone call on energy strike moratorium,call,Trump;Putin,no
+2025-04-19,Russia announces Easter truce,ceasefire,Putin,no
+2025-05-08,Russia's declared Victory Day truce begins,ceasefire,Putin,no
+2025-05-16,Direct Ukraine-Russia talks in Istanbul,talks,Ukraine;Russia;Turkey,no
+2025-05-19,Trump-Putin phone call,call,Trump;Putin,no
+2025-06-01,Operation Spiderweb,military_milestone,Ukraine,no
+2025-06-02,Second round of Istanbul talks,talks,Ukraine;Russia,no
+2025-07-14,Trump sets 50-day deadline for Russia,ultimatum,Trump,no
+2025-07-23,Third round of Istanbul talks,talks,Ukraine;Russia,no
+2025-07-28,Trump shortens deadline to 10-12 days,ultimatum,Trump,no
+2025-08-15,Trump-Putin summit in Alaska,summit,Trump;Putin,no
+2025-08-18,Zelensky and European leaders at the White House,visit,Trump;Zelensky;EU,no
+2025-10-16,Trump-Putin phone call; Budapest summit announced,call,Trump;Putin,no
+2025-10-17,Zelensky at the White House,visit,Trump;Zelensky,no
+2025-10-22,US sanctions on Rosneft and Lukoil,sanctions,US,no
+2025-11-23,Talks in Geneva on the US peace plan,talks,US;Ukraine,no

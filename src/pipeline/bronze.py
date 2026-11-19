@@ -41,3 +41,11 @@ def weather_hourly(spark):
             .select("oblast_id", F.col("h.time").alias("time_utc"),
                     *[F.col(f"h.{c}").cast("double").alias(c) for c in WEATHER_VARS],
                     "_ingested_at", "_source_file"))
+
+
+def gdelt_events(spark):
+    """Filtered GDELT 1.0 daily exports (Ukraine/Russia events), tab-separated, gzip."""
+    from .reference import GDELT_COLUMNS
+    schema = T.StructType([T.StructField(c, T.StringType()) for c in GDELT_COLUMNS])
+    df = spark.read.option("sep", "\t").option("quote", "").schema(schema).csv(f"{RAW_DIR}/raw/gdelt/*.csv.gz")
+    return _meta(df)

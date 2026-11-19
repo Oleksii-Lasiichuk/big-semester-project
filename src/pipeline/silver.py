@@ -340,3 +340,104 @@ def dim_night(spark, start=date(2022, 2, 24), end=None):
         rows.append((d, round(ph, 2), illum, round(dark_h, 2), d.weekday(), d.isocalendar()[1]))
         d += timedelta(days=1)
     return spark.createDataFrame(rows, ["night", "moon_phase_day", "moon_illumination", "darkness_hours", "weekday", "iso_week"])
+
+
+# ------------------------------------------------------------------ GDELT
+def gdelt_events(bronze_g):
+    """Typed GDELT events, one row per event id (daily files can repeat ids). Event date = SQLDATE (UTC day)."""
+    from .reference import FIPS_TO_OBLAST
+    m = F.create_map(*[x for k, v in FIPS_TO_OBLAST.items() for x in (F.lit(k), F.lit(v))])
+    return (bronze_g.dropDuplicates(["GLOBALEVENTID"])
+            .select(F.expr("try_cast(GLOBALEVENTID as long)").alias("event_id"),
+                    F.to_date("SQLDATE", "yyyyMMdd").alias("event_date"),
+                    F.to_date("DATEADDED", "yyyyMMdd").alias("date_added"),
+                    F.col("Actor1CountryCode").alias("a1_country"), F.col("Actor2CountryCode").alias("a2_country"),
+                    F.col("Actor1Type1Code").alias("a1_type"), F.col("Actor2Type1Code").alias("a2_type"),
+                    F.col("Actor1Name").alias("a1_name"), F.col("Actor2Name").alias("a2_name"),
+                    F.col("EventCode").alias("event_code"), F.col("EventRootCode").alias("root_code"),
+                    F.expr("try_cast(QuadClass as int)").alias("quad_class"),
+                    F.expr("try_cast(GoldsteinScale as double)").alias("goldstein"),
+                    F.expr("try_cast(NumMentions as int)").alias("n_mentions"), F.expr("try_cast(NumSources as int)").alias("n_sources"),
+                    F.expr("try_cast(NumArticles as int)").alias("n_articles"), F.expr("try_cast(AvgTone as double)").alias("tone"),
+                    F.col("ActionGeo_CountryCode").alias("geo_country"), F.col("ActionGeo_ADM1Code").alias("geo_adm1"),
+                    F.element_at(m, F.col("ActionGeo_ADM1Code")).alias("geo_oblast_id"),
+                    F.expr("try_cast(ActionGeo_Lat as double)").alias("lat"), F.expr("try_cast(ActionGeo_Long as double)").alias("lon"),
+                    F.col("SOURCEURL").alias("source_url"))
+            .where(F.col("event_date") >= F.lit(WAR_START)))
+
+
+def _agg_quads(prefix):
+    w = F.col("n_mentions")
+    return [F.count("*").alias(f"{prefix}_events"), F.sum(w).alias(f"{prefix}_mentions"),
+            F.round(F.sum(F.col("tone") * w) / F.sum(w), 3).alias(f"{prefix}_tone"),
+            F.round(F.sum(F.col("goldstein") * w) / F.sum(w), 3).alias(f"{prefix}_goldstein")]
+
+
+def gdelt_daily(ev):
+    """National daily news signals. Dyads by actor country; 'diplomacy' = consult/negotiate/cooperate codes
+    (root 03-06), 'threat' = threaten/demand/coerce (10, 13, 17), 'conflict' = material conflict (quad 4)."""
+    a1, a2 = F.col("a1_country"), F.col("a2_country")
+    dip = F.col("root_code").isin("03", "04", "05", "06")
+    thr = F.col("root_code").isin("10", "13", "17")
+    dyads = {
+        "all": F.lit(True),
+        "ru_ua_conflict": (a1 == "RUS") & (a2 == "UKR") & (F.col("quad_class") == 4),
+        "ua_ru_conflict": (a1 == "UKR") & (a2 == "RUS") & (F.col("quad_class") == 4),
+        "us_ru_diplomacy": (((a1 == "USA") & (a2 == "RUS")) | ((a1 == "RUS") & (a2 == "USA"))) & dip,
+        "us_ua_diplomacy": (((a1 == "USA") & (a2 == "UKR")) | ((a1 == "UKR") & (a2 == "USA"))) & dip,
+        "ru_ua_diplomacy": (((a1 == "RUS") & (a2 == "UKR")) | ((a1 == "UKR") & (a2 == "RUS"))) & dip,
+        "threats_by_ru": (a1 == "RUS") & thr,
+        "in_russia_conflict": (F.col("geo_country") == "RS") & (F.col("quad_class") == 4),
+    }
+    out = None
+    for name, cond in dyads.items():
+        d = ev.where(cond).groupBy("event_date").agg(*_agg_quads(name))
+        out = d if out is None else out.join(d, "event_date", "full")
+    return out
+
+
+def gdelt_oblast_daily(ev):
+    """Material-conflict events located in each Ukrainian oblast per day."""
+    return (ev.where(F.col("geo_oblast_id").isNotNull())
+            .groupBy("event_date", F.col("geo_oblast_id").alias("oblast_id"))
+            .agg(F.count("*").alias("events"), F.sum(F.when(F.col("quad_class") == 4, 1).otherwise(0)).alias("conflict_events"),
+                 F.sum("n_mentions").alias("mentions"),
+                 F.round(F.sum(F.col("tone") * F.col("n_mentions")) / F.sum("n_mentions"), 3).alias("tone")))
+
+
+# ------------------------------------------------------------------ calendars, diplomacy, energy
+def holidays(spark):
+    from .calendars import holidays as h
+    return spark.createDataFrame(h(), ["date", "holiday", "country"])
+
+
+def diplomacy_calendar(spark):
+    import csv
+    from .io import ROOT
+    with open(ROOT / "data_ref" / "diplomacy_events.csv", encoding="utf-8") as f:
+        rows = [(date.fromisoformat(r["date"]), r["event"], r["type"], r["actors"].split(";"), r["verified"] == "yes")
+                for r in csv.DictReader(f)]
+    return spark.createDataFrame(rows, "date date, event string, type string, actors array<string>, verified boolean")
+
+
+def diplomacy_daily(events):
+    """Telegram diplomacy coverage per day: post counts by signal and by actor."""
+    d = events.where(F.col("event_type") == "diplomacy_politics")
+    actors = F.lower(F.concat_ws(" ", "actors"))
+    sig = lambda s: F.sum(F.when(F.col("diplomacy_signal") == s, 1).otherwise(0)).alias(s)  # noqa: E731
+    act = lambda name, pat: F.sum(F.when(actors.rlike("(?iU)" + pat), 1).otherwise(0)).alias(f"mentions_{name}")  # noqa: E731
+    return (d.groupBy("event_day")
+            .agg(F.count("*").alias("diplomacy_posts"),
+                 sig("peace_talks_positive"), sig("peace_talks_negative"), sig("threat_or_ultimatum"),
+                 sig("sanctions"), sig("aid_to_ukraine"),
+                 act("trump", "trump|трамп"), act("putin", "putin|путін"), act("zelensky", "zelensk|зеленськ")))
+
+
+def energy_events(events):
+    """Strikes on energy infrastructure and outage reports per day and oblast."""
+    e = events.where((F.col("event_type") == "energy_outage")
+                     | ((F.col("event_type") == "russian_attack_on_ukraine") & (F.col("target_type") == "energy")))
+    e = e.withColumn("oblast_id", F.explode_outer("ua_oblast_ids"))
+    return (e.groupBy("event_day", "oblast_id")
+            .agg(F.sum(F.when(F.col("event_type") == "russian_attack_on_ukraine", 1).otherwise(0)).alias("energy_strike_posts"),
+                 F.sum(F.when(F.col("event_type") == "energy_outage", 1).otherwise(0)).alias("outage_posts")))

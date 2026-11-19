@@ -10,10 +10,10 @@ from pathlib import Path
 # repo root: --root on Databricks (serverless runs the script without __file__), else this file's parent
 _root = sys.argv[sys.argv.index("--root") + 1] if "--root" in sys.argv else str(Path(__file__).resolve().parents[1])
 sys.path.insert(0, str(Path(_root) / "src"))
-from pipeline import bronze, silver, validation  # noqa: E402
+from pipeline import bronze, gold, silver, validation  # noqa: E402
 from pipeline.io import get_spark, read, write  # noqa: E402
 
-STEPS = ["reference", "alerts", "telegram", "af", "weather", "validate"]
+STEPS = ["reference", "alerts", "telegram", "af", "weather", "gdelt", "context", "gold", "validate"]
 
 
 def main():
@@ -69,6 +69,29 @@ def main():
         w = write(bronze.weather_hourly(spark), "bronze", "weather_hourly")
         write(silver.weather_night(w), "silver", "weather_night")
         log("weather")
+
+    if "gdelt" in steps:
+        g = write(silver.gdelt_events(write(bronze.gdelt_events(spark), "bronze", "gdelt_events")), "silver", "gdelt_events")
+        write(silver.gdelt_daily(g), "silver", "gdelt_daily")
+        write(silver.gdelt_oblast_daily(g), "silver", "gdelt_oblast_daily")
+        log("gdelt")
+
+    if "context" in steps:
+        ev = read(spark, "silver", "tg_events")
+        write(silver.holidays(spark), "silver", "holidays")
+        write(silver.diplomacy_calendar(spark), "silver", "diplomacy_calendar")
+        write(silver.diplomacy_daily(ev), "silver", "diplomacy_daily")
+        write(silver.energy_events(ev), "silver", "energy_events")
+        log("calendars, diplomacy, energy")
+
+    if "gold" in steps:
+        names = ["af_nightly", "alerts_oblast_hourly", "strikes_on_russia", "casualty_daily", "energy_events",
+                 "diplomacy_daily", "gdelt_daily", "gdelt_oblast_daily", "dim_night", "holidays", "diplomacy_calendar",
+                 "dim_oblast", "weather_night", "tg_events"]
+        s = {n: read(spark, "silver", n) for n in names}
+        nat = write(gold.national_day(spark, s), "gold", "national_day")
+        write(gold.oblast_day(spark, s, nat), "gold", "oblast_day")
+        log("gold")
 
     if "validate" in steps:
         res = validation.run(spark)

@@ -4,16 +4,24 @@ resources:
       name: airwar_pipeline
       parameters:
         - name: only
-          default: reference,alerts,telegram,af,weather,validate
+          default: reference,alerts,telegram,af,weather,gdelt,context,gold,validate
       tasks:
-        - task_key: bronze_silver
+        - task_key: bronze_silver_gold
           environment_key: default
           spark_python_task:
             python_file: ../scripts/run_pipeline.py
             parameters: ["--only", "{{job.parameters.only}}", "--root", "${workspace.file_path}"]
+        - task_key: train_baseline
+          depends_on:
+            - task_key: bronze_silver_gold
+          environment_key: default
+          spark_python_task:
+            python_file: ../scripts/train_baseline.py
+            parameters: ["--root", "${workspace.file_path}"]
       environments:
         - environment_key: default
           spec:
-            client: "2"
+            client: "4"
             dependencies:
               - astral
+              - mlflow-skinny

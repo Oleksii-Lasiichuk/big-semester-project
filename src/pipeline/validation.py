@@ -78,6 +78,21 @@ def run(spark):
     r.append(_res("af_nightly", "shot_down > launched marked low quality", sg == 0,
                   f"{af.where('flag_shot_gt_launched').count()} nights flagged, {sg} not marked"))
 
+    # gdelt
+    ge, gd = t("silver", "gdelt_events"), t("silver", "gdelt_daily")
+    r.append(_unique(ge, "gdelt_events", ["event_id"]))
+    days = gd.where("all_events > 0").count()
+    r.append(_res("gdelt_daily", "days with events", days >= 1650, f"{days} days, {ge.count():,} events"))
+    bad_geo = ge.where("geo_country = 'UP' and geo_adm1 like 'UP%' and length(geo_adm1) = 4 and geo_adm1 <> 'UP00' and geo_oblast_id is null").count()
+    r.append(_res("gdelt_events", "Ukrainian ADM1 codes map to oblasts", bad_geo == 0, f"{bad_geo} unmapped"))
+
+    # gold
+    nat, obl = t("gold", "national_day"), t("gold", "oblast_day")
+    r.append(_unique(nat, "national_day", ["day"]))
+    r.append(_unique(obl, "oblast_day", ["day", "oblast_id"]))
+    n_obl = obl.select("oblast_id").distinct().count()
+    r.append(_res("oblast_day", "24 oblasts", n_obl == 24, f"{n_obl} oblasts"))
+
     # weather
     w = t("silver", "weather_night")
     r.append(_unique(w, "weather_night", ["oblast_id", "night"]))

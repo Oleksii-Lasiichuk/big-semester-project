@@ -12,3 +12,5 @@ docs/
 notebooks/llm_extraction_kaggle.ipynb
 proposal/proposal.html
 .pytest_cache/
+data_ref/diplomacy_candidates.csv
+mlruns/

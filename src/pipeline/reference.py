@@ -108,3 +108,30 @@ RU_REGIONS = [
     ("Іркутська обл.", r"іркутськ|ангарськ"),
     ("Амурська обл.", r"амурськ|благовєщенськ"),
 ]
+
+# GDELT 1.0 ActionGeo_ADM1Code -> oblast_id. GDELT numbers Ukrainian regions alphabetically by its own transliteration
+# (UP04 Dnipropetrovsk, UP05 Donetsk, UP07 Kharkiv, ...), not by FIPS 10-4. Derived from ActionGeo_FullName in the data.
+FIPS_TO_OBLAST = {
+    "UP01": "UA71", "UP02": "UA74", "UP03": "UA77", "UP04": "UA12", "UP05": "UA14", "UP06": "UA26",
+    "UP07": "UA63", "UP08": "UA65", "UP09": "UA68", "UP10": "UA35", "UP11": "UA43", "UP12": "UA80",
+    "UP13": "UA32", "UP14": "UA44", "UP15": "UA46", "UP16": "UA48", "UP17": "UA51", "UP18": "UA53",
+    "UP19": "UA56", "UP20": "UA85", "UP21": "UA59", "UP22": "UA61", "UP23": "UA05", "UP24": "UA07",
+    "UP25": "UA21", "UP26": "UA23", "UP27": "UA18",
+}
+
+# GDELT 1.0 event export columns (58)
+GDELT_COLUMNS = [
+    "GLOBALEVENTID", "SQLDATE", "MonthYear", "Year", "FractionDate",
+    "Actor1Code", "Actor1Name", "Actor1CountryCode", "Actor1KnownGroupCode", "Actor1EthnicCode",
+    "Actor1Religion1Code", "Actor1Religion2Code", "Actor1Type1Code", "Actor1Type2Code", "Actor1Type3Code",
+    "Actor2Code", "Actor2Name", "Actor2CountryCode", "Actor2KnownGroupCode", "Actor2EthnicCode",
+    "Actor2Religion1Code", "Actor2Religion2Code", "Actor2Type1Code", "Actor2Type2Code", "Actor2Type3Code",
+    "IsRootEvent", "EventCode", "EventBaseCode", "EventRootCode", "QuadClass", "GoldsteinScale",
+    "NumMentions", "NumSources", "NumArticles", "AvgTone",
+    "Actor1Geo_Type", "Actor1Geo_FullName", "Actor1Geo_CountryCode", "Actor1Geo_ADM1Code",
+    "Actor1Geo_Lat", "Actor1Geo_Long", "Actor1Geo_FeatureID",
+    "Actor2Geo_Type", "Actor2Geo_FullName", "Actor2Geo_CountryCode", "Actor2Geo_ADM1Code",
+    "Actor2Geo_Lat", "Actor2Geo_Long", "Actor2Geo_FeatureID",
+    "ActionGeo_Type", "ActionGeo_FullName", "ActionGeo_CountryCode", "ActionGeo_ADM1Code",
+    "ActionGeo_Lat", "ActionGeo_Long", "ActionGeo_FeatureID", "DATEADDED", "SOURCEURL",
+]
