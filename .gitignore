@@ -1,0 +1,6 @@
+data/
+logs/
+*.docx.pdf
+.DS_Store
+__pycache__/
+.ipynb_checkpoints/

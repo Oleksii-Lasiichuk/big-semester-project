@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Project proposal</title>
+<style>
+  @page { size: A4; margin: 22mm 22mm; }
+  body { font-family: "Times New Roman", Times, serif; font-size: 11.5pt; line-height: 1.4; color: #000; }
+  h1 { font-size: 14pt; text-align: center; margin: 0 0 4px; }
+  .meta { text-align: center; margin: 0 0 16px; }
+  h2 { font-size: 12pt; margin: 14px 0 4px; }
+  p { margin: 4px 0; text-align: justify; }
+  ol { margin: 4px 0 4px 20px; padding: 0; }
+  li { margin: 3px 0; text-align: justify; }
+  .src li { font-size: 10.5pt; }
+</style></head><body>
+
+<h1>Statistical Analysis of Russian Air Attacks on Ukraine and Air-Raid Alerts, 2022–2026: A Lakehouse Pipeline on Databricks</h1>
+<p class="meta">Team BIG: Pavlo Ruzhylo, Ivan Maksymchuk, Oleksii Lasiichuk<br>Course: Big Data Processing Technologies, UCU, 2026</p>
+
+<h2>1. Description</h2>
+<p>The project builds a lakehouse on Databricks that combines official air-raid alert records (2022–2026), daily missile and drone attack statistics, historical weather for oblast centres, GDELT news event data, and posts from public Telegram channels (Air Force of Ukraine, Sternenko, Lachen). Telegram posts are converted into structured records (event type, oblast, weapon type, number launched and intercepted, civilian casualties, Ukrainian strikes on Russian territory, diplomatic events) with an open-weight language model, Gemma 4. The integrated data is stored as a table at the date × oblast level. On this table we test whether weather conditions, diplomatic events and Ukrainian strikes on Russia precede changes in attack intensity, using event studies with placebo dates. We also train and evaluate models that forecast next-day attack intensity and alert duration per oblast against naive baselines.</p>
+
+<h2>2. Related work</h2>
+<ol>
+<li>Pavlyshenko and Pavlyshenko (arXiv:2411.14625, 2024): random-forest models that predict alert onset per oblast 5–15 minutes ahead from alert history. They do not use attack size, weather or news data.</li>
+<li>CSIS Futures Lab (2025): descriptive tracking of Russian strike salvos, reporting an average interval of 8.2 days between major salvos in 2025. No statistical testing.</li>
+<li>Hukovych et al. (2025, student project): relation between weather at one Kyiv station and interception rates. National level only; weather is the only explanatory variable.</li>
+<li>Institute for Science and International Security; Kyiv Dialogue Ukraine Air War Monitor: monthly counts of launched and intercepted drones. Descriptive only.</li>
+<li>P. Ivaniuk, Kaggle "Massive Missile Attacks on Ukraine": manually curated attack table based on Air Force reports. Reporting is incomplete for some weapon types after August 2026.</li>
+</ol>
+<p><b>Gap.</b> We found no public study that combines alert, attack, weather, news and retaliation data at the date × oblast level, and no open structured dataset of Ukrainian strikes on Russian territory or of casualty reports extracted from Telegram.</p>
+
+<h2>3. Plan of deliverables (deadline 10 December)</h2>
+<ol>
+<li><b>Bronze layer (week 1).</b> Ingestion of the alert dataset, the Kaggle attack dataset, Open-Meteo weather for 25 oblast centres, GDELT 15-minute files (incremental ingestion with Auto Loader), and Telegram exports, stored in Delta tables with ingestion metadata.</li>
+<li><b>LLM enrichment (weeks 1–2).</b> Extraction of structured events from Telegram posts with Gemma 4 on Kaggle GPUs, with output constrained to a JSON schema. A rule-based parser of Air Force daily summaries is used as a cross-check. Extraction accuracy is measured on approximately 200 manually labelled posts and logged in MLflow.</li>
+<li><b>Silver layer (week 2).</b> Cleaning, deduplication, merging of revised casualty counts, harmonisation of the change from oblast-level to raion-level alerts (December 2025), data quality checks with quarantine of invalid records.</li>
+<li><b>Gold layer (week 2).</b> A date × oblast feature table (alert hours, attack size, weather, moon phase and darkness, news volume and tone, diplomatic and strike indicators with lags) and a national daily table.</li>
+<li><b>Analysis and modelling (week 3).</b> Event studies with placebo dates; count regression models and Spark ML gradient-boosted trees with lagged features; time-based validation against naive baselines; experiment tracking in MLflow; anomaly detection on daily attack series.</li>
+<li><b>Delivery (week 3).</b> Parameterised Databricks Job defined as an asset bundle, AI/BI dashboard, Genie space, presentation.</li>
+</ol>
+
+<h2>4. Data sources</h2>
+<ol class="src">
+<li>Ukrainian air-raid alerts: github.com/Vadimkin/ukrainian-air-raid-sirens-dataset</li>
+<li>Missile and drone attacks: kaggle.com/datasets/piterfm/massive-missile-attacks-on-ukraine</li>
+<li>Telegram public channels (web preview): t.me/s/kpszsu, t.me/s/ssternenko, t.me/s/lachentyt</li>
+<li>GDELT 2.0 Event and GKG data: gdeltproject.org</li>
+<li>Open-Meteo Historical Weather API: open-meteo.com</li>
+<li>Gemma 4 model: ai.google.dev/gemma; Ukrainian LLM Leaderboard: github.com/lang-uk/ukrainian-llm-leaderboard</li>
+<li>Related work: arxiv.org/abs/2411.14625; csis.org/analysis/russias-massed-strikes-strategy-coercion-salvo; hukovychb.github.io/media/docs/Predicting-Missile-and-Drone-Destruction.pdf; isis-online.org; kyiv-dialogue.org</li>
+</ol>
+</body></html>
