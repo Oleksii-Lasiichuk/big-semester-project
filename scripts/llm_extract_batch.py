@@ -66,9 +66,12 @@ def parse_af_summary(text, dt):
     if m and m.group(2) in MONTHS:
         y = dt.year - (1 if (MONTHS[m.group(2)] == 12 and dt.month == 1) else 0)
         night = f"{y:04d}-{MONTHS[m.group(2)]:02d}-{int(m.group(1)):02d}"
-    before_shot = re.split(r"збито", text, flags=re.I)[0]
-    drones = sum(int(x) for x in re.findall(r"(\d+)\s+ударн\w*\s+(?:БпЛА|безпілотник)", before_shot))
-    missiles = sum(int(x) for x in re.findall(r"(\d+)\s+(?:\w+\s+){0,3}ракет", before_shot))
+    # launch counts are between "атакував" and the shot-down sentence (the header "ЗБИТО/ПОДАВЛЕНО N" comes first)
+    seg = re.search(r"атакував(.*?)(?:Повітряний напад|збито|подавлено|знищено|$)", text, flags=re.I | re.S)
+    before_shot = seg.group(1) if seg else ""
+    num = r"(\d+)(?:-\w{1,3})?"  # "131-м ударним", "145-ма ударними"
+    drones = sum(int(x) for x in re.findall(num + r"\s+ударн\w*\s+(?:БпЛА|безпілотник)", before_shot))
+    missiles = sum(int(x) for x in re.findall(num + r"\s+(?:[\w«»\"-]+\s+){0,3}ракет", before_shot))
     shot = re.search(r"ЗБИТО/ПОДАВЛЕНО\s+(\d+)", text) or re.search(r"збито(?:/подавлено)?\s+(\d+)", text, re.I)
     return {
         "night_of": night,
