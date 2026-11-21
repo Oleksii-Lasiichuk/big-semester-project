@@ -12,14 +12,7 @@
   <img alt="Databricks" src="https://img.shields.io/badge/Databricks-Asset%20Bundle-FF3621?logo=databricks&logoColor=white">
   <img alt="Delta Lake" src="https://img.shields.io/badge/Delta%20Lake-medallion-00ADD4?logo=delta&logoColor=white">
   <img alt="MLflow" src="https://img.shields.io/badge/MLflow-tracking-0194E2?logo=mlflow&logoColor=white">
-  <img alt="Claude Haiku 5.5" src="https://img.shields.io/badge/LLM-Claude%20Haiku%205.5-D97757?logo=anthropic&logoColor=white">
   <br/>
-  <img alt="Data: air-raid alerts" src="https://img.shields.io/badge/data-air--raid%20alerts-555">
-  <img alt="Data: Telegram" src="https://img.shields.io/badge/data-Telegram-26A5E4?logo=telegram&logoColor=white">
-  <img alt="Data: GDELT" src="https://img.shields.io/badge/data-GDELT-555">
-  <img alt="Data: Open-Meteo" src="https://img.shields.io/badge/data-Open--Meteo-555">
-  <img alt="Tests: pytest" src="https://img.shields.io/badge/tests-pytest-0A9EDC?logo=pytest&logoColor=white">
-  <img alt="Deadline" src="https://img.shields.io/badge/deadline-10%20Dec%202026-C4A12F">
 </p>
 
 <p align="center">
